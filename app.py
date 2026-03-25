@@ -86,6 +86,7 @@ X = X[model.feature_names_in_]
 
 # =========================
 
+
 y_prob = model.predict_proba(X.values)[:, 1]
 df["Churn_Probability"] = y_prob
 df["Predicted_Churn"] = (df["Churn_Probability"] > threshold).astype(int)
