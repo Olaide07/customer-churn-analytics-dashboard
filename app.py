@@ -5,6 +5,11 @@ import pickle
 import xgboost as xgb
 
 # -------------------------------
+# PAGE CONFIG
+# -------------------------------
+st.set_page_config(page_title="Churn Dashboard", layout="wide")
+
+# -------------------------------
 # LOAD MODEL
 # -------------------------------
 @st.cache_resource
@@ -19,8 +24,7 @@ model = load_model()
 # -------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_excel("Telco_customer_churn.xlsx")
-    return df
+    return pd.read_excel("Telco_customer_churn.xlsx")
 
 df = load_data()
 
@@ -35,35 +39,32 @@ def preprocess(df):
         "Zip Code", "Lat Long", "Latitude", "Longitude",
         "Churn Label", "Churn Score", "CLTV", "Churn Reason"
     ]
-
     df = df.drop(columns=drop_cols, errors="ignore")
 
     # Fix Total Charges
     df["Total Charges"] = pd.to_numeric(df["Total Charges"], errors="coerce")
     df["Total Charges"].fillna(df["Total Charges"].median(), inplace=True)
 
-    # One-hot encoding
-    df_encoded = pd.get_dummies(df)
+    # Encode
+    df = pd.get_dummies(df)
 
-    return df_encoded
+    return df
 
 df_encoded = preprocess(df)
 
 # -------------------------------
-# ALIGN FEATURES WITH MODEL (CRITICAL FIX)
+# ALIGN FEATURES
 # -------------------------------
 model_features = model.get_booster().feature_names
 
-# Add missing columns
 for col in model_features:
     if col not in df_encoded.columns:
         df_encoded[col] = 0
 
-# Keep only model columns in correct order
 df_encoded = df_encoded[model_features]
 
 # -------------------------------
-# SIDEBAR CONTROLS
+# SIDEBAR
 # -------------------------------
 st.sidebar.title("⚙️ Controls")
 
@@ -73,13 +74,13 @@ st.sidebar.markdown("### 🔎 Filters")
 
 contract_filter = st.sidebar.multiselect(
     "Contract Type",
-    options=df["Contract"].unique(),
+    df["Contract"].unique(),
     default=df["Contract"].unique()
 )
 
 payment_filter = st.sidebar.multiselect(
     "Payment Method",
-    options=df["Payment Method"].unique(),
+    df["Payment Method"].unique(),
     default=df["Payment Method"].unique()
 )
 
@@ -92,25 +93,30 @@ filtered_df = df[
 ]
 
 # -------------------------------
-# PREDICTION (FINAL FIX)
+# PREDICTION (SAFE)
 # -------------------------------
-X = df_encoded
+dmatrix = xgb.DMatrix(df_encoded, feature_names=model_features)
 
-# Use feature names to avoid mismatch
-dmatrix = xgb.DMatrix(X, feature_names=model_features)
-
-# Use booster (NOT sklearn wrapper)
 y_prob = model.get_booster().predict(dmatrix)
-
 y_pred = (y_prob >= threshold).astype(int)
 
 # -------------------------------
-# DASHBOARD UI
+# HEADER
 # -------------------------------
 st.title("📊 Customer Churn Analytics Dashboard")
-st.markdown("### Built by Olaide Ajibade")
 
-# Metrics
+st.markdown(
+"""
+**Built by Olaide Ajibade**  
+Machine Learning | Data Science | Predictive Analytics  
+
+This dashboard predicts customer churn and provides insights into key drivers such as contract type and payment method.
+"""
+)
+
+# -------------------------------
+# METRICS
+# -------------------------------
 col1, col2, col3 = st.columns(3)
 
 col1.metric("Total Customers", len(df))
@@ -120,13 +126,24 @@ col3.metric("Predicted Churn", int(y_pred.sum()))
 st.markdown("---")
 
 # -------------------------------
-# CHARTS
+# CHART
 # -------------------------------
 st.subheader("📈 Churn by Contract Type")
 
 contract_churn = filtered_df.groupby("Contract")["Churn Value"].mean()
-
 st.bar_chart(contract_churn)
+
+# -------------------------------
+# INSIGHT
+# -------------------------------
+st.subheader("💡 Key Insight")
+
+month_churn = df[df["Contract"] == "Month-to-month"]["Churn Value"].mean()
+
+st.info(
+    f"Customers on month-to-month contracts have a churn rate of {month_churn*100:.1f}%, "
+    f"significantly higher than long-term contracts."
+)
 
 # -------------------------------
 # DATA PREVIEW
