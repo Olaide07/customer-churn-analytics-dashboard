@@ -50,17 +50,16 @@ def preprocess(df):
 df_encoded = preprocess(df)
 
 # -------------------------------
-# ALIGN FEATURES WITH MODEL
+# ALIGN FEATURES WITH MODEL (CRITICAL FIX)
 # -------------------------------
-try:
-    model_features = model.get_booster().feature_names
-except:
-    model_features = df_encoded.columns.tolist()
+model_features = model.get_booster().feature_names
 
+# Add missing columns
 for col in model_features:
     if col not in df_encoded.columns:
         df_encoded[col] = 0
 
+# Keep only model columns in correct order
 df_encoded = df_encoded[model_features]
 
 # -------------------------------
@@ -93,14 +92,14 @@ filtered_df = df[
 ]
 
 # -------------------------------
-# PREDICTION (FIXED)
+# PREDICTION (FINAL FIX)
 # -------------------------------
 X = df_encoded
 
-# Convert to DMatrix (XGBoost native)
-dmatrix = xgb.DMatrix(np.array(X))
+# Use feature names to avoid mismatch
+dmatrix = xgb.DMatrix(X, feature_names=model_features)
 
-# Use booster directly (no sklearn wrapper)
+# Use booster (NOT sklearn wrapper)
 y_prob = model.get_booster().predict(dmatrix)
 
 y_pred = (y_prob >= threshold).astype(int)
