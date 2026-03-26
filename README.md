@@ -6,7 +6,7 @@ An interactive machine learning dashboard that predicts customer churn and provi
 
 ## Live App
 
-👉 https://your-link.streamlit.app
+https://customer-churn-analytics-dashboard.streamlit.app/
 
 ---
 
@@ -31,7 +31,8 @@ Users can explore churn behavior dynamically using filters and adjust prediction
 
 ##  Dashboard Preview
 
-*Add screenshot here*
+<img width="1861" height="916" alt="image" src="https://github.com/user-attachments/assets/59ef4f23-a381-48fb-a9b6-c539ca249e49" />
+
 
 ---
 
