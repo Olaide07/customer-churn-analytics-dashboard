@@ -1,7 +1,6 @@
 streamlit
-pandas==2.2.2
-numpy==1.26.4
-matplotlib
-scikit-learn==1.4.2
+pandas
+numpy
 xgboost==1.7.6
+matplotlib
 openpyxl
