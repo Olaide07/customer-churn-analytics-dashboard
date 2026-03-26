@@ -80,7 +80,7 @@ customer-churn-analytics-dashboard/
 ##  Installation
 
 ```bash
-git clone https://github.com/your-username/customer-churn-analytics-dashboard.git
+git clone https://github.com/Olaide07/customer-churn-analytics-dashboard.git
 cd customer-churn-analytics-dashboard
 pip install -r requirements.txt
 streamlit run app.py
